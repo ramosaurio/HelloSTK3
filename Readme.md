@@ -67,19 +67,41 @@ If the build is successful, you will find the compiled `HelloSTK3.cap` file insi
 
 ### 2. Deploying the CAP File to the SIM Card
 
-The deployment was performed using a **custom tool** based on an external repository, modified to fit specific deployment parameters.
+The applet deployment is carried out using the [**sim-tools**](https://github.com/ramosaurio/sim-tools) repository, which contains a customized version of `shadysim` tailored for advanced SIM Toolkit development and secure OTA scenarios.
 
-> ⚡ Note: Since the deployment tool is custom-made, the exact procedure is not detailed here.  
-> It includes automatic selection of application parameters (AID, privileges, installation options) according to the HelloSTK3 applet requirements.
+To install the **HelloSTK3** applet on a compatible SIM card, use the following command:
+
+```
+python3 shadysim.py \
+  --pcsc \
+  -l /path/to/your/build/hellostk3.cap \
+  -i /path/to/your/build/hellostk3.cap \
+  --enable-sim-toolkit \
+  --module-aid <YOUR_MODULE_AID_HEX> \
+  --instance-aid <YOUR_INSTANCE_AID_HEX> \
+  --nonvolatile-memory-required 0100 \
+  --volatile-memory-for-install 0100 \
+  --max-menu-entry-text 15 \
+  --max-menu-entries 05 \
+  --max-bip-channel 4 \
+  --access-domain 00 \
+  --max-timers 2 \
+  --kic <YOUR_KIC_HEX> \
+  --kid <YOUR_KID_HEX>
+```
+
+> ⚙️ Replace the placeholders (`<YOUR_MODULE_AID_HEX>`, `<YOUR_INSTANCE_AID_HEX>`, `<YOUR_KIC_HEX>`, `<YOUR_KID_HEX>`) with the actual values defined during CAP file generation or provisioning.
+
+This command handles both loading and installation of the CAP file, and automatically configures key STK-related parameters such as BIP support, menu entries, timers, and secure channel credentials (KIC/KID) for OTA operations.
 
 **Test Environment:**
 - **SIM Card Model**: Sysmocom ISIM-SJA5-9FV
 - **Card Capabilities**:
-  - Supports JavaCard 2.2.1
-  - Compatible with SIM Toolkit (STK) commands
-  - Bearer Independent Protocol (BIP) available
+  - JavaCard 2.2.1 compliant
+  - SIM Toolkit (STK) and Bearer Independent Protocol (BIP) supported
+  - Compatible with secure OTA commands via KIC/KID
 
-The CAP file was successfully loaded onto the card and activated, enabling interaction with the SIM Toolkit environment.
+Once installed, the HelloSTK3 applet is activated and ready to interact with the SIM Toolkit runtime environment, including proactive commands and BIP sessions.
 
 ---
 
@@ -165,6 +187,8 @@ The design and development of this applet are based primarily on the following s
   - [https://osmocom.org/projects/sim-toolkit/wiki](https://osmocom.org/projects/sim-toolkit/wiki) — Used as a reference for CAP file building and SIM applet deployment procedures.
 - **ETSI TS 102 241 v17.4.0**:
   - [JavaCard API for UICC Applications](https://www.etsi.org/deliver/etsi_ts/102200_102299/102241/17.04.00_60/ts_102241v170400p.pdf) — The UICC and STK JavaCard libraries used in the project (`exp/` and `lib/` folders) were extracted from this official specification.
+- **sim-tools (shadysim fork)**:
+  - [https://github.com/ramosaurio/sim-tools](https://github.com/ramosaurio/sim-tools) — Custom deployment tool used to load and install the HelloSTK3 CAP file onto JavaCard-based SIMs, with full support for STK, BIP, and secure OTA parameters.
 
 > **Note:** All technical concepts related to UICC architecture, event management, security, and APDU flow have been adapted according to the interoperability recommendations from the sources cited above.
 ---
