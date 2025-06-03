@@ -2,9 +2,11 @@ package com.brownfields.github.hellostk3;
 
 import javacard.framework.JCSystem;
 import uicc.toolkit.EnvelopeHandler;
+import javacard.framework.Util;
+
 /**
  * STKHandler class
- *
+ * <p>
  * Handles SIM Toolkit (STK) events and coordinates UICC information retrieval,
  * JSON payload construction, and HTTP POST sending through BIP.
  */
@@ -19,6 +21,7 @@ public class STKHandler {
 
     // Buffer for building JSON payload
     private byte[] jsonBodyBuffer;
+    private byte[] tmpBuffer; // Shared temporary buffer for processing
 
     // JSON keys to include in the body
     private static final byte[] keys = {
@@ -29,10 +32,10 @@ public class STKHandler {
     };
 
     // Offsets for each key inside the flat array
-    private static final short[] keyOffsets = { 0, 5, 9, 12 };
+    private static final short[] keyOffsets = {0, 5, 9, 12};
 
     // Lengths for each key
-    private static final short[] keyLengths = { 5, 4, 3, 3 };
+    private static final short[] keyLengths = {5, 4, 3, 3};
 
     // Server information
     static byte[] serverAddr = {(byte) 178, (byte) 63, (byte) 67, (byte) 106};
@@ -43,19 +46,22 @@ public class STKHandler {
     /**
      * Constructor
      *
-     * @param diag Diagnostic utility for logging
+     * @param diag      Diagnostic utility for logging
      * @param tmpBuffer Shared temporary buffer
      */
     public STKHandler(DiagUtil diag, byte[] tmpBuffer) {
         this.diag = diag;
+        this.tmpBuffer = tmpBuffer;
+
         this.bipManager = new BIPManager(diag, tmpBuffer);
-        uiccInfoProvider = new UICCInfoProvider(tmpBuffer, diag);
-        jsonBodyBuffer = JCSystem.makeTransientByteArray((short) 320, JCSystem.CLEAR_ON_RESET);
+        this.uiccInfoProvider = new UICCInfoProvider(tmpBuffer, diag);
+
+        this.jsonBodyBuffer = JCSystem.makeTransientByteArray((short) 320, JCSystem.CLEAR_ON_RESET);
     }
 
     /**
      * Handles EVENT_MENU_SELECTION.
-     *
+     * <p>
      * Builds a JSON payload with UICC information and sends it over HTTP POST using BIP.
      */
     public void eventMenuSelection() {
@@ -82,7 +88,7 @@ public class STKHandler {
 
     /**
      * Handles EVENT_DOWNLOAD_DATA_AVAILABLE.
-     *
+     * <p>
      * Delegates processing to BIPManager.
      */
     public void processEventEventDownloadDataAvailable(EnvelopeHandler eh) {
@@ -97,7 +103,7 @@ public class STKHandler {
 
     /**
      * Handles EVENT_DOWNLOAD_CHANNEL_STATUS.
-     *
+     * <p>
      * Delegates processing to BIPManager.
      */
     public void procesEventEventDownloadChannelStatus(EnvelopeHandler eh) {
@@ -111,4 +117,63 @@ public class STKHandler {
     }
 
 
+    public void displayIccidOnMenuSelection() {
+        try {
+            byte[] iccid = uiccInfoProvider.getIccidBuffer();
+            short length = uiccInfoProvider.getIccidLength();
+            DiagUtil.text(iccid, (short) 0, length);
+
+        } catch (Exception e) {
+            DiagUtil.text(STKHANDLER_ERROR_GENERAL);
+        }
+    }
+
+    public void displayMncMccOnMenuSelection() {
+        try {
+            byte[] mcc = uiccInfoProvider.getMccBuffer();
+            byte[] mnc = uiccInfoProvider.getMncBuffer();
+
+            // Usamos tmpBuffer como buffer de trabajo
+            Util.arrayCopyNonAtomic(mcc, (short) 0, tmpBuffer, (short) 0, (short) mcc.length);
+            tmpBuffer[mcc.length] = (byte) '-';
+            Util.arrayCopyNonAtomic(mnc, (short) 0, tmpBuffer, (short) (mcc.length + 1), (short) mnc.length);
+
+            short totalLength = (short) (mcc.length + 1 + mnc.length);
+            DiagUtil.text(tmpBuffer, (short) 0, totalLength);
+
+        } catch (Exception e) {
+            DiagUtil.text(STKHANDLER_ERROR_GENERAL);
+        }
+    }
+
+    public void displayJSONOnMenuSelection() {
+        try {
+            byte[] fullBuffer = uiccInfoProvider.getFullBuffer();
+            short[] valueOffsets = uiccInfoProvider.getFullOffsets();
+            short[] valueLengths = uiccInfoProvider.getFullLengths();
+
+            short bodyLength = JsonUtil.buildJson(
+                    keys, keyOffsets, keyLengths,
+                    fullBuffer, valueOffsets, valueLengths,
+                    jsonBodyBuffer, (short) 0
+            );
+            DiagUtil.text(jsonBodyBuffer, (short) 0, bodyLength);
+
+        } catch (Exception e) {
+            DiagUtil.text(STKHANDLER_ERROR_GENERAL);
+
+        }
+
+
+    }
+
+    public void displayImeiOnMenuSelection() {
+        try {
+            byte[] imei = uiccInfoProvider.getImeiBuffer();
+            DiagUtil.text(imei, (short) 0, (short) imei.length);
+
+        } catch (Exception e) {
+            DiagUtil.text(STKHANDLER_ERROR_GENERAL);
+        }
+    }
 }

@@ -54,9 +54,20 @@ public class HelloSTK3 extends Applet implements ToolkitInterface, ToolkitConsta
 
     // Menu Item ID returned after registering the menu entry.
     private byte helloMenuItem;
+    private byte iccidMenuItem;
+    private byte imeiMenuItem;
+    private byte mncmccMenuItem;
+    private byte JSONMenuItem;
+
 
     // Static buffers for text displayed or used as debug messages.
     static byte[] menuItemText = new byte[]{'H', 'e', 'l', 'l', 'o', ',', ' ', 'S', 'T', 'K'};
+
+    static byte[] iccidMenuItemText = new byte[]{'I', 'C', 'C', 'I', 'D'};
+    static byte[] imeiMenuItemText = new byte[]{'I', 'M', 'E', 'I'};
+    static byte[] mncmccdMenuItemText = new byte[]{'M', 'N', 'C', ' ', 'M','C','C'};
+    static byte[] JSONMenuItemText = new byte[]{'J', 'S', 'O', 'N'};
+
 
     // Diagnostic utility for displaying debug messages.
     private DiagUtil diag;
@@ -78,7 +89,14 @@ public class HelloSTK3 extends Applet implements ToolkitInterface, ToolkitConsta
         toolkitRegistry = ToolkitRegistrySystem.getEntry();
         helloMenuItem = toolkitRegistry.initMenuEntry(menuItemText, (short) 0, (short) menuItemText.length, (byte) 0, false,
                 (byte) 0, (short) 0);
-
+        iccidMenuItem = toolkitRegistry.initMenuEntry(iccidMenuItemText, (short) 0, (short) iccidMenuItemText.length, (byte) 0, false,
+                (byte) 0, (short) 0);
+        imeiMenuItem = toolkitRegistry.initMenuEntry(imeiMenuItemText, (short) 0, (short) imeiMenuItemText.length, (byte) 0, false,
+                (byte) 0, (short) 0);
+        mncmccMenuItem = toolkitRegistry.initMenuEntry(mncmccdMenuItemText, (short) 0, (short) mncmccdMenuItemText.length, (byte) 0, false,
+                (byte) 0, (short) 0);
+        JSONMenuItem = toolkitRegistry.initMenuEntry(JSONMenuItemText, (short) 0, (short) JSONMenuItemText.length, (byte) 0, false,
+                (byte) 0, (short) 0);
 
         // Set events to be notified to this applet
         toolkitRegistry.setEvent(ToolkitConstants.EVENT_EVENT_DOWNLOAD_DATA_AVAILABLE);
@@ -120,7 +138,25 @@ public class HelloSTK3 extends Applet implements ToolkitInterface, ToolkitConsta
 
     public void processToolkit(short event) {
         if (event == EVENT_MENU_SELECTION) {
-            stkHandler.eventMenuSelection();
+            EnvelopeHandler eh = EnvelopeHandlerSystem.getTheHandler();
+            byte selectedItemId =  eh.getItemIdentifier();
+
+            if(selectedItemId == helloMenuItem ){
+                stkHandler.eventMenuSelection();
+
+            }else if(selectedItemId == iccidMenuItem){
+                stkHandler.displayIccidOnMenuSelection();
+
+            }else if(selectedItemId == mncmccMenuItem){
+                stkHandler.displayMncMccOnMenuSelection();
+
+            }else if(selectedItemId == JSONMenuItem){
+                stkHandler.displayJSONOnMenuSelection();
+
+            }else if(selectedItemId == imeiMenuItem){
+                stkHandler.displayImeiOnMenuSelection();
+
+            }
         }
 
         if (event == EVENT_EVENT_DOWNLOAD_DATA_AVAILABLE) {
