@@ -43,7 +43,11 @@ This section describes the necessary steps to build and deploy the HelloSTK3 app
 
 ---
 
-### 1. Building the CAP File
+### 1. Installing dependencies
+```bash
+sudo apt update && sudo apt install ant openjdk-8-jdk
+```
+### 2. Building the CAP File
 
 The project uses [ant-javacard](https://github.com/martinpaljak/ant-javacard) for building the JavaCard CAP file.
 
@@ -65,7 +69,7 @@ If the build is successful, you will find the compiled `HelloSTK3.cap` file insi
 
 ---
 
-### 2. Deploying the CAP File to the SIM Card
+### 3. Deploying the CAP File to the SIM Card
 
 The applet deployment is carried out using the [**sim-tools**](https://github.com/ramosaurio/sim-tools) repository, which contains a customized version of `shadysim` tailored for advanced SIM Toolkit development and secure OTA scenarios.
 
@@ -74,11 +78,11 @@ To install the **HelloSTK3** applet on a compatible SIM card, use the following 
 ```
 python3 shadysim.py \
   --pcsc \
-  -l /path/to/your/build/hellostk3.cap \
-  -i /path/to/your/build/hellostk3.cap \
+  -l /path/to/your/build/HelloSTK3.cap \
+  -i /path/to/your/build/HelloSTK3.cap \
   --enable-sim-toolkit \
-  --module-aid <YOUR_MODULE_AID_HEX> \
-  --instance-aid <YOUR_INSTANCE_AID_HEX> \
+  --module-aid d0:70:02:CA:44:90:01:01 \
+  --instance-aid d0:70:02:CA:44:90:01:01 \
   --nonvolatile-memory-required 0100 \
   --volatile-memory-for-install 0100 \
   --max-menu-entry-text 15 \
@@ -88,6 +92,7 @@ python3 shadysim.py \
   --max-timers 2 \
   --kic <YOUR_KIC_HEX> \
   --kid <YOUR_KID_HEX>
+  
 ```
 
 > ⚙️ Replace the placeholders (`<YOUR_MODULE_AID_HEX>`, `<YOUR_INSTANCE_AID_HEX>`, `<YOUR_KIC_HEX>`, `<YOUR_KID_HEX>`) with the actual values defined during CAP file generation or provisioning.
@@ -105,7 +110,7 @@ Once installed, the HelloSTK3 applet is activated and ready to interact with the
 
 ---
 
-### 3. Post-deployment
+### 4. Post-deployment
 
 After deployment, the following applet features are available:
 
